@@ -1,0 +1,29 @@
+{
+  "name": "attach-to-trello-card-action",
+  "version": "1.0.0",
+  "description": "Github Action: Add attachment to a given Trello card URL (e.g., pull request)",
+  "main": "index.js",
+  "scripts": {
+    "lint": " ./node_modules/eslint/bin/eslint.js . --ext .json --ext .js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/delivered/attach-to-trello-card-action.git"
+  },
+  "keywords": [],
+  "author": "Brian Henry",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/delivered/attach-to-trello-card-action/issues"
+  },
+  "homepage": "https://github.com/delivered/attach-to-trello-card-action",
+  "dependencies": {
+    "@actions/core": "^1.2.2",
+    "@actions/github": "^1.1.0",
+    "axios": "^0.19.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-plugin-node": "^11.0.0"
+  }
+}

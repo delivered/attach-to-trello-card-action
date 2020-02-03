@@ -1,0 +1,18 @@
+{
+  "extends": ["plugin:node/recommended"],
+  "rules": {
+    "node/no-unsupported-features/es-builtins": [
+      "error",
+      {
+        "version": "~12.14"
+      }
+    ],
+    "node/no-unsupported-features/es-syntax": [
+      "error",
+      {
+        "version": "~12.14"
+      }
+    ],
+    "node/no-unpublished-require": "off"
+  }
+}

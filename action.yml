@@ -1,0 +1,12 @@
+name: 'Attach to Trello Card'
+description: 'Add attachment to a given Trello card URL, to Attach Pull Request'
+inputs:
+  trello-key:
+    description: '(public) Trello auth key for account'
+    required: true
+  trello-token:
+    description: 'secret Trello auth token for account'
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
