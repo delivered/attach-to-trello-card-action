@@ -4,7 +4,7 @@
   "description": "Github Action: Add attachment to a given Trello card URL (e.g., pull request)",
   "main": "index.js",
   "scripts": {
-    "lint": " ./node_modules/eslint/bin/eslint.js . --ext .json --ext .js"
+    "lint": " ./node_modules/eslint/bin/eslint.js . --ext .js"
   },
   "repository": {
     "type": "git",
