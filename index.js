@@ -90,15 +90,9 @@ const addPrComment = async (body) => {
 }; 
 
 const commentsContainsTrelloLink = async (cardId) => {
-  const comments = await getPrComments();
-
-  console.log('got comments');
-  console.dir(comments);
-  
   const linkRegex = new RegExp(`\\[[^\\]]+\\]\\(https:\\/\\/trello.com\\/c\\/${cardId}\\/[^)]+\\)`);
-  
-  console.log(`looking for ${linkRegex}`);
-  
+
+  const comments = await getPrComments();  
   return comments.data.some((comment) => linkRegex.test(comment.body));
 };
 
@@ -129,10 +123,8 @@ const buildTrelloLinkComment = async (cardId) => {
           console.log('adding pr comment');
           const newComment = await buildTrelloLinkComment(cardId)
 
-          //comments as 'github actions' bot
+          //comments as 'github actions' bot, at least when using token automatically generated for GH workflows
           addPrComment(newComment);
-
-          console.log('added comment');
         } else {
           console.log('pr comment present or unwanted - skipping add');
         }
@@ -142,11 +134,8 @@ const buildTrelloLinkComment = async (cardId) => {
     } else {
       console.log(`no card url in pr comment. nothing to do`);
     }
-  
-    //if we wanted to make chainable.  move card to a new column in a subsequent action, for example?
-    //core.setOutput("trelloCardId", cardId);
   } catch (error) {
-    //failure will stop PR from being mergeable if we have that setting on the repo.  there is not currently a neutral exit in actions v2.
+    //failure will stop PR from being mergeable if that setting enabled on the repo.  there is not currently a neutral exit in actions v2.
     core.setFailed(error.message);
   }
 })();
