@@ -5,21 +5,28 @@ const axios = require('axios');
 //configured in workflow file, which in turn should use repo secrets settings
 const trelloKey = core.getInput('trello-key');
 const trelloToken = core.getInput('trello-token');
+//adds extra (redundant) PR comment, to mimic normal behavior of trello GH powerup
+const shouldAddPrComment = core.getInput('add-pr-comment') === 'true';
+const ghToken = core.getInput('repo-token');
+
 
 const trelloClient = axios.create({
   baseURL: 'https://api.trello.com',
 });
 
-const requestTrello = async (verb, url, body = null) => {
+const requestTrello = async (verb, url, body = null, extraParams = null) => {
   try {
+    const params = {
+        ...(extraParams || {}),
+        key: trelloKey, 
+        token: trelloToken    
+    };
+    
     const res = await trelloClient.request({
         method: verb,
         url: url,
         data: body || {}, 
-        params: {
-            key: trelloKey, 
-            token: trelloToken
-        }
+        params: params
     });  
     console.log(`${verb} to ${url} completed with status: ${res.status}.  data follows:`);
     console.dir(res.data);
@@ -42,6 +49,10 @@ const createCardAttachment = async (cardId, attachUrl) => {
   return requestTrello('post', `/1/cards/${cardId}/attachments`, {url: attachUrl});
 };
 
+const getCardInfoSubset = async (cardId) => {
+  return requestTrello('get', `/1/cards/${cardId}`, null, {fields: 'name,url'});
+};
+
 const extractTrelloCardId = (prBody) =>   {
   console.log(`pr body: ${prBody}`);  
   
@@ -51,6 +62,49 @@ const extractTrelloCardId = (prBody) =>   {
   console.log(`card id = ${cardId}`);
 
   return cardId;
+}
+
+
+const getPrComments = async () => {
+  //token is not magically present in context
+  const octokit = new github.GitHub(ghToken);
+  const evthookPayload = github.context.payload;
+  
+  return await octokit.issues.listComments({
+      owner: (evthookPayload.organization || evthookPayload.repository.owner).login,
+      repo: evthookPayload.repository.name,
+      issue_number: evthookPayload.pull_request.number
+  });
+};
+
+const addPrComment = async (body) => {
+  const octokit = new github.GitHub(ghToken);
+  const evthookPayload = github.context.payload;
+  
+  return await octokit.issues.createComment({
+      owner: (evthookPayload.organization || evthookPayload.repository.owner).login,
+      repo: evthookPayload.repository.name,
+      issue_number: evthookPayload.pull_request.number,
+      body
+  });
+}; 
+
+const commentsContainsTrelloLink = async (cardId) => {
+  const comments = await getPrComments();
+
+  console.log('got comments');
+  console.dir(comments);
+  
+  const linkRegex = new RegExp(`\\[[^\\]]+\\]\\(https:\\/\\/trello.com\\/c\\/${cardId}\\/[^)]+\\)`);
+  
+  console.log(`looking for ${linkRegex}`);
+  
+  return comments.data.some((comment) => linkRegex.test(comment.body));
+};
+
+const buildTrelloLinkComment = async (cardId) => {
+  const cardInfo = await getCardInfoSubset(cardId);
+  return `![](https://github.trello.services/images/mini-trello-icon.png) [${cardInfo.name}](${cardInfo.url})`;
 }
 
 
@@ -69,6 +123,19 @@ const extractTrelloCardId = (prBody) =>   {
       if(extantAttachments == null || !extantAttachments.some(it => it.url === prUrl)) {
         const createdAttachment = await createCardAttachment(cardId, prUrl);
         console.log(`created trello attachment: ${JSON.stringify(createdAttachment)}`);
+        
+        // BRH NOTE actually, the power-up doesn't check if it previously added comment, so check is maybe superfluous
+        if(shouldAddPrComment && !await commentsContainsTrelloLink(cardId)) {
+          console.log('adding pr comment');
+          const newComment = await buildTrelloLinkComment(cardId)
+
+          //comments as 'github actions' bot
+          addPrComment(newComment);
+
+          console.log('added comment');
+        } else {
+          console.log('pr comment present or unwanted - skipping add');
+        }
       } else {
         console.log('trello attachement already exists. skipped create.');
       }
