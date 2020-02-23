@@ -104,14 +104,8 @@ const buildTrelloLinkComment = async (cardId) => {
 
 (async () => {
   try {
-      console.log('------1')
-    console.log(github);
-    console.log('------2')
-    console.log(github.context);
-        console.log('------3')
-    console.log(evthookPayload);
-    if(!(evthookPayload.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
-       core.info(`event/type not supported: ${evthookPayload.eventName}.${evthookPayload.action}.  skipping action.`);
+    if(!(github.context.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
+       core.info(`event/type not supported: ${github.context.eventName.eventName}.${evthookPayload.action}.  skipping action.`);
        return;
     }
     
