@@ -2,6 +2,9 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const axios = require('axios');
 
+const supportedEvent = 'pull_request';
+const supportedActions = ['opened', 'reopened', 'edited'];
+
 //configured in workflow file, which in turn should use repo secrets settings
 const trelloKey = core.getInput('trello-key');
 const trelloToken = core.getInput('trello-token');
@@ -102,6 +105,11 @@ const buildTrelloLinkComment = async (cardId) => {
 
 (async () => {
   try {
+    if(!(evthookPayload.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
+       console.log(`event/type not supported: ${evthookPayload.eventName}.${evthookPayload.action}.  skipping action.`);
+       return;
+    }
+    
     const cardId = extractTrelloCardId(evthookPayload.pull_request.body);
     const prUrl = evthookPayload.pull_request.html_url;
   
