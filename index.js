@@ -134,7 +134,7 @@ const buildTrelloLinkComment = async (cardId) => {
                     //comments as 'github actions' bot, at least when using token automatically generated for GH workflows
           await addPrComment(newComment);
         } else {
-          core.info('pr comment present or unwanted - skipped add.');
+          core.info('pr comment already present or unwanted - skipped comment add.');
         }
       } else {
         core.info('trello attachement already exists - skipped create.');
