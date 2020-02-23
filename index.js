@@ -6,8 +6,8 @@ const supportedEvent = 'pull_request';
 const supportedActions = ['opened', 'reopened', 'edited'];
 
 //configured in workflow file, which in turn should use repo secrets settings
-const trelloKey = core.getInput('trello-key');
-const trelloToken = core.getInput('trello-token');
+const trelloKey = core.getInput('trello-key', { required: true });
+const trelloToken = core.getInput('trello-token', { required: true });
 //adds extra (redundant) PR comment, to mimic normal behavior of trello GH powerup
 const shouldAddPrComment = core.getInput('add-pr-comment') === 'true';
 //token is NOT magically present in context as some docs seem to indicate - have to supply in workflow yaml to input var
@@ -33,14 +33,13 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
         data: body || {}, 
         params: params
     });  
-    console.log(`${verb} to ${url} completed with status: ${res.status}.  data follows:`);
-    console.dir(res.data);
+    core.debug(`${verb} to ${url} completed with status: ${res.status}.  data follows:`);
+    core.debug(res.data);
     return res.data;
   } catch(err) {
-    console.log(`${verb} to ${url} errored: ${err}`);
+    core.error(`${verb} to ${url} errored: ${err}`);
     if(err.response) {
-      //console.log(`status: ${err.status}.  error data follows:`);
-      console.dir(err.response.data);
+      core.error(err.response.data);
     }
     throw err;  
   }
@@ -80,12 +79,12 @@ const addPrComment = async (body) => {
 
 
 const extractTrelloCardId = (prBody) =>   {
-  console.log(`pr body: ${prBody}`);  
+  core.debug(`pr body: ${prBody}`);  
   
   //find 1st instance of trello card url - must be 1st thing in PR
   const matches = /^\s*https\:\/\/trello\.com\/c\/(\w+)/.exec(prBody);
   const cardId = matches && matches[1];
-  console.log(`card id = ${cardId}`);
+  core.debug(`card id = ${cardId}`);
 
   return cardId;
 }
@@ -105,8 +104,14 @@ const buildTrelloLinkComment = async (cardId) => {
 
 (async () => {
   try {
+      console.log('------1')
+    console.log(github);
+    console.log('------2')
+    console.log(github.context);
+        console.log('------3')
+    console.log(evthookPayload);
     if(!(evthookPayload.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
-       console.log(`event/type not supported: ${evthookPayload.eventName}.${evthookPayload.action}.  skipping action.`);
+       core.info(`event/type not supported: ${evthookPayload.eventName}.${evthookPayload.action}.  skipping action.`);
        return;
     }
     
@@ -116,32 +121,33 @@ const buildTrelloLinkComment = async (cardId) => {
     if(cardId) {
       let extantAttachments;
       
-      console.log(`card url for ${cardId} specified in pr comment.`);
+      core.debug(`card url for ${cardId} specified in pr comment.`);
       extantAttachments = await getCardAttachments(cardId);
 
       //make sure not already attached
       if(extantAttachments == null || !extantAttachments.some(it => it.url === prUrl)) {
         const createdAttachment = await createCardAttachment(cardId, prUrl);
-        console.log(`created trello attachment: ${JSON.stringify(createdAttachment)}`);
+        core.info(`created trello attachment.`);
+        core.debug(createdAttachment);
         
         // BRH NOTE actually, the power-up doesn't check if it previously added comment, so check is maybe superfluous
         if(shouldAddPrComment && !await commentsContainsTrelloLink(cardId)) {
-          console.log('adding pr comment');
+          core.debug('adding pr comment');
           const newComment = await buildTrelloLinkComment(cardId)
 
                     //comments as 'github actions' bot, at least when using token automatically generated for GH workflows
           await addPrComment(newComment);
         } else {
-          console.log('pr comment present or unwanted - skipping add');
+          core.info('pr comment present or unwanted - skipped add.');
         }
       } else {
-        console.log('trello attachement already exists. skipped create.');
+        core.info('trello attachement already exists - skipped create.');
       }
     } else {
-      console.log(`no card url in pr comment. nothing to do`);
+      core.info(`no card url in pr comment. nothing to do.`);
     }
   } catch (error) {
-    console.error(error);
+    core.error(error);
     //failure will stop PR from being mergeable if that setting enabled on the repo.  there is not currently a neutral exit in actions v2.
     core.setFailed(error.message);
   }
