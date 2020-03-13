@@ -1,10 +1,24 @@
 # Attach to Trello Card action
 
-The purpose of this action is to enable attaching a pull request to a Trello card, from within the PR body.  This is best used with the Trello [Github Power-Up](https://trello.com/power-ups/55a5d916446f517774210004) added to your Trello Boards.  With that enabled, this effectively enables the "Attach Pull Request" action of the Power-Up, but from the Github side (and via a quick URL copy-paste instead of clicking through menus).
+The purpose of this action is to enable attaching a pull request to Trello cards, from within the PR body.  This is best used with the Trello [Github Power-Up](https://trello.com/power-ups/55a5d916446f517774210004) added to your Trello Boards.  With that enabled, this effectively enables the "Attach Pull Request" action of the Power-Up, but from the Github side (and via a quick URL copy-paste instead of clicking through menus).
 
-The action looks for a Trello card URL at the start of a Pull Request description.  If found, it will add the PR URL as an attachment to Trello.
+The action looks for Trello card URLs at the start of a Pull Request description.  If found, it will add the PR URL as an attachment to each specified card in Trello.
 
-Optionally, this can be configured to also attach a (redundant) PR comment with link/name, similar to what the Trello Power-up will do, for use cases requiring that.
+Optionally, this can be configured to also attach (redundant) PR comments with card links/names, similar to what the Trello Power-up will do, for use cases requiring that.
+
+## Link-Finding
+URLs need to each be on own line (leading/trailing whitespace and extra blank lines don't matter), and be at top of PR body.  URLs embedded in other text are ignored, as are URLs after descriptive (i.e., non-link) text starts.
+
+So, for :
+```text
+https://trello.com/c/aaaaaaaa
+
+https://trello.com/c/bbbbbbbbb
+This PR impl's the above 2 features.  These work similarly to feature https://trello.com/c/ccccccccc.  
+The below is a random trello url put in this body, for some reason:
+https://trello.com/c/dddddddd
+```
+only cards `aaaaaaaa` and `bbbbbbbbb` will have the PR attached.
 
 
 ## Events

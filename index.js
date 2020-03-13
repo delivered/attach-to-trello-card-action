@@ -85,9 +85,9 @@ const addPrComment = async (body) => {
 const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
   core.debug(`pr body: ${prBody}`);  
   
-  //browsers submit textareas with \r\n line breaks on all platforms
+  // browsers submit textareas with \r\n line breaks on all platforms
   const browserEol = '\r\n';
-  //requires that link be alone own line, and allows leading/trailing whitespace
+  // requires that link be alone own line, and allows leading/trailing whitespace
   const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+))?\s*$/;
   
   const cardIds = [];
