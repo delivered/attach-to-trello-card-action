@@ -1,6 +1,6 @@
 {
   "name": "attach-to-trello-card-action",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Github Action: Add attachment to a given Trello card URL (e.g., pull request)",
   "main": "index.js",
   "scripts": {
