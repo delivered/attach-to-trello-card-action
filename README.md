@@ -46,3 +46,8 @@ jobs:
           # repo-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+## Development Notes
+# Incrementing version
+1. Update version in package.json (format should be `vX.X.X`)
+1. Commit/push changes
+1. Create release (and publish to marketplace) - use 'v'-prepended format for new tag and release name (same as for package.json)
