@@ -83,12 +83,12 @@ const addPrComment = async (body) => {
 // to stop looking when we get to what looks like pr description, use stopOnNonLink true.  to allow interspersed lines of
 // yada yada yada b/w Trello links, use false.
 const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
-  core.debug(`pr body: ${prBody}`);  
+  core.debug(`prBody: ${util.inspect(prBody)}`);
   
   // browsers submit textareas with \r\n line breaks on all platforms
   const browserEol = '\r\n';
   // requires that link be alone own line, and allows leading/trailing whitespace
-  const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+))?\s*$/;
+  const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)\/\S+)?\s*$/;
   
   const cardIds = [];
   const lines = prBody.split(browserEol);
@@ -97,8 +97,14 @@ const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
   for(const line of lines) {
     const matches = linkRegex.exec(line);
     if(matches) {
-      if(matches[2]) cardIds.push(matches[2]);  
-    } else if(stopOnNonLink) break;
+      if(matches[2]) {
+        core.debug(`found id ${matches[2]}`);
+        cardIds.push(matches[2]);
+      }
+    } else if(stopOnNonLink) {
+      core.debug('matched something non-blank/link.  stopping search');
+      break;
+    }
   };
   return cardIds;
 }
@@ -130,28 +136,28 @@ const buildTrelloLinkComment = async (cardId) => {
       for(const cardId of cardIds) {   
         let extantAttachments;
       
-        core.debug(`card url for ${cardId} specified in pr comment.`);
+        core.info(`card url for ${cardId} specified in pr.`);
         extantAttachments = await getCardAttachments(cardId);
 
         //make sure not already attached
         if(extantAttachments == null || !extantAttachments.some(it => it.url === prUrl)) {
           const createdAttachment = await createCardAttachment(cardId, prUrl);
-          core.info(`created trello attachment.`);
+          core.info(`created trello attachment for card ${cardId}.`);
           core.debug(util.inspect(createdAttachment));
         
           // BRH NOTE actually, the power-up doesn't check if it previously added comment, so this doesn't exactly match
           //  its fxnality.
           if(shouldAddPrComment && !await commentsContainsTrelloLink(cardId)) {
-            core.debug('adding pr comment');
+            core.debug(`adding pr comment for card ${cardId}.`);
             const newComment = await buildTrelloLinkComment(cardId)
 
             //comments as 'github actions' bot, at least when using token automatically generated for GH workflows
             await addPrComment(newComment);
           } else {
-            core.info('pr comment already present or unwanted - skipped comment add.');
+            core.info(`pr comment already present or unwanted for card ${cardId} - skipped comment add.`);
           }
         } else {
-          core.info('trello attachement already exists - skipped create.');
+          core.info(`trello attachment for card ${cardId} already exists - skipped attachment create.`);
         }
       };
     } else {
