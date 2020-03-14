@@ -94,7 +94,7 @@ const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
   const lines = prBody.split(browserEol);
 
   //loop and gather up cardIds, skipping blank lines. stopOnNonLink == true will bust out when we're out of link-only territory.
-  for(let line of lines) {
+  for(const line of lines) {
     const matches = linkRegex.exec(line);
     if(matches) {
       if(matches[2]) cardIds.push(matches[2]);  
@@ -127,7 +127,7 @@ const buildTrelloLinkComment = async (cardId) => {
     const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
   
     if(cardIds && cardIds.length > 0) {
-      cardIds.forEach((cardId) => {    
+      for(const cardId of cardIds) {   
         let extantAttachments;
       
         core.debug(`card url for ${cardId} specified in pr comment.`);
@@ -153,7 +153,7 @@ const buildTrelloLinkComment = async (cardId) => {
         } else {
           core.info('trello attachement already exists - skipped create.');
         }
-      });
+      };
     } else {
       core.info(`no card urls in pr comment. nothing to do.`);
     }
