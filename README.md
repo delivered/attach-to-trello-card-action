@@ -43,7 +43,7 @@ There are no outputs.
 name: Attach to Trello
 on:
   pull_request:
-    types: [opened, reopened, edited]
+    types: [opened, reopened, edited, synchronise]
 jobs:
   attach-trello:
     runs-on: ubuntu-latest
