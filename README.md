@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Find trello link and attach to card
     steps:
-      - uses: delivered/attach-to-trello-card-action@master
+      - uses: Ian1971/attach-to-trello-card-action@master
         with:
           trello-key: ${{ secrets.TRELLO_KEY }}
           trello-token: ${{ secrets.TRELLO_TOKEN }}
