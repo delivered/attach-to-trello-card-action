@@ -4,7 +4,7 @@ const github = require('@actions/github');
 const axios = require('axios');
 
 const supportedEvent = 'pull_request';
-const supportedActions = ['opened', 'reopened', 'edited'];
+const supportedActions = ['opened', 'reopened', 'edited', 'synchronize'];
 
 //configured in workflow file, which in turn should use repo secrets settings
 const trelloKey = core.getInput('trello-key', { required: true });
@@ -62,6 +62,11 @@ const getCardInfoSubset = async (cardId) => {
 
 const octokit = new github.GitHub(ghToken);
 
+const baseRepoArgs = {
+  owner: (evthookPayload.organization || evthookPayload.repository.owner).login,
+  repo: evthookPayload.repository.name
+};
+
 const baseIssuesArgs = {
     owner: (evthookPayload.organization || evthookPayload.repository.owner).login,
     repo: evthookPayload.repository.name,
@@ -79,34 +84,58 @@ const addPrComment = async (body) => {
   });
 };
 
+const listCommits = async (pull_number) => {
+  return await octokit.pulls.listCommits({
+    ...baseRepoArgs,
+    pull_number
+  });
+};
+
 
 // to stop looking when we get to what looks like pr description, use stopOnNonLink true.  to allow interspersed lines of
 // yada yada yada b/w Trello links, use false.
-const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
-  core.debug(`prBody: ${util.inspect(prBody)}`);
-  
-  // browsers submit textareas with \r\n line breaks on all platforms
-  const browserEol = '\r\n';
-  // requires that link be alone own line, and allows leading/trailing whitespace
-  const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)\/\S+)?\s*$/;
-  
+const extractTrelloCardIds = async (pr, stopOnNonLink = false) =>   {  
   const cardIds = [];
-  const lines = prBody.split(browserEol);
 
-  //loop and gather up cardIds, skipping blank lines. stopOnNonLink == true will bust out when we're out of link-only territory.
-  for(const line of lines) {
-    const matches = linkRegex.exec(line);
-    if(matches) {
-      if(matches[2]) {
-        core.debug(`found id ${matches[2]}`);
-        cardIds.push(matches[2]);
-      }
-    } else if(stopOnNonLink) {
-      core.debug('matched something non-blank/link.  stopping search');
-      break;
-    }
-  };
+  //check pr body
+  const prBody = pr.body;
+  core.debug(`prBody: ${util.inspect(prBody)}`);
+   
+  extractCardIdsFromText(prBody,cardIds, stopOnNonLink);
+
+  //now check the commit messages
+  const prNum = pr.number;
+  const commitsResponse = await listCommits(prNum);
+  commitsResponse.data.forEach( (commitResponse, index) => {
+    const message = commitResponse.commit.message;
+    core.debug(`message: ${util.inspect(message)}`);
+    extractCardIdsFromText(message, cardIds, false, '\n');
+  })
+
   return cardIds;
+}
+
+const extractCardIdsFromText = (body, cardIds, stopOnNonLink = true, lineEnd = '\r\n') => {
+   // browsers submit textareas with \r\n line breaks on all platforms
+
+   // requires that link be alone own line, and allows leading/trailing whitespace
+   const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)\/\S+)?\s*$/;
+
+   const lines = body.split(lineEnd);
+ 
+   //loop and gather up cardIds, skipping blank lines. stopOnNonLink == true will bust out when we're out of link-only territory.
+   for(const line of lines) {
+     const matches = linkRegex.exec(line);
+     if(matches) {
+       if(matches[2]) {
+         core.debug(`found id ${matches[2]}`);
+         cardIds.push(matches[2]);
+       }
+     } else if(stopOnNonLink) {
+       core.debug('matched something non-blank/link.  stopping search');
+       break;
+     }
+   };
 }
 
 const commentsContainsTrelloLink = async (cardId) => {
@@ -130,7 +159,7 @@ const buildTrelloLinkComment = async (cardId) => {
     }
     
     const prUrl = evthookPayload.pull_request.html_url;
-    const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
+    const cardIds = await extractTrelloCardIds(evthookPayload.pull_request);
   
     if(cardIds && cardIds.length > 0) {
       for(const cardId of cardIds) {   
