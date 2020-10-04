@@ -88,7 +88,7 @@ const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
   // browsers submit textareas with \r\n line breaks on all platforms
   const browserEol = '\r\n';
   // requires that link be alone own line, and allows leading/trailing whitespace
-  const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)\/\S+)?\s*$/;
+  const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)(\/\S*)?)?\s*$/;
   
   const cardIds = [];
   const lines = prBody.split(browserEol);
@@ -110,7 +110,7 @@ const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
 }
 
 const commentsContainsTrelloLink = async (cardId) => {
-  const linkRegex = new RegExp(`\\[[^\\]]+\\]\\(https:\\/\\/trello.com\\/c\\/${cardId}\\/[^)]+\\)`);
+  const linkRegex = new RegExp(`\\[[^\\]]+\\]\\(https:\\/\\/trello.com\\/c\\/${cardId}(\\/[^)]*)?\\)`);
 
   const comments = await getPrComments();  
   return comments.data.some((comment) => linkRegex.test(comment.body));

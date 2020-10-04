@@ -7,13 +7,13 @@ The action looks for Trello card URLs at the start of a Pull Request description
 Optionally, this can be configured to also attach (redundant) PR comments with card links/names, similar to what the Trello Power-up will do, for use cases requiring that.
 
 ## Link-Finding
-URLs need to each be on own line (leading/trailing whitespace and extra blank lines don't matter), and be at top of PR body.  URLs embedded in other text are ignored, as are URLs after descriptive (i.e., non-link) text starts.
+URLs need to each be on own line (leading/trailing whitespace and extra blank lines don't matter), and be at top of PR body.  URLs embedded in other text are ignored, as are URLs after descriptive (i.e., non-link) text starts.  Both the short-form (from the "Link to this card" field provided by a card's "Share" button) or long-form (cmd/ctrl+c with card open, copy from url bar with card open, etc.) are supported.
 
 So, for :
 ```text
 https://trello.com/c/aaaaaaaa
 
-https://trello.com/c/bbbbbbbbb
+https://trello.com/c/bbbbbbbbb/111-qqqqqqqqqqqq
 This PR impl's the above 2 features.  These work similarly to feature https://trello.com/c/ccccccccc.  
 The below is a random trello url put in this body, for some reason:
 https://trello.com/c/dddddddd
