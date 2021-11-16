@@ -92,7 +92,9 @@ const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
   
   const cardIds = [];
   const lines = prBody.split(browserEol);
-
+  if(!prBody || prBody==="") {
+    return cardIds;
+  }
   //loop and gather up cardIds, skipping blank lines. stopOnNonLink == true will bust out when we're out of link-only territory.
   for(const line of lines) {
     const matches = linkRegex.exec(line);
