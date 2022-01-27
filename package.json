@@ -1,10 +1,13 @@
 {
   "name": "attach-to-trello-card-action",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "description": "Github Action: Add attachment to a given Trello card URL (e.g., pull request)",
   "main": "index.js",
   "scripts": {
-    "lint": " ./node_modules/eslint/bin/eslint.js . --ext .js"
+    "lint": "eslint .",
+    "prepare": "ncc build index.js -o dist --source-map --license licenses.txt",
+    "test": "jest",
+    "all": "npm run lint && npm run prepare && npm run test"
   },
   "repository": {
     "type": "git",
@@ -20,7 +23,8 @@
   "dependencies": {
     "@actions/core": "^1.2.2",
     "@actions/github": "^1.1.0",
-    "axios": "^0.19.2"
+    "axios": "^0.19.2",
+    "jest": "^27.4.7"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

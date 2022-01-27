@@ -98,7 +98,7 @@ const extractTrelloCardIds = async (pr, stopOnNonLink = false) =>   {
   const cardIds = [];
 
   //check pr body
-  const prBody = pr.body;
+  const prBody = pr.body || '';
   core.debug(`prBody: ${util.inspect(prBody)}`);
    
   extractCardIdsFromText(prBody,cardIds, stopOnNonLink);
