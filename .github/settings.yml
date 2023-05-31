@@ -1,0 +1,2 @@
+# See https://developer.github.com/v3/repos/#edit for all available settings.
+_extends: .github:.github/default-settings.yml
