@@ -9,15 +9,15 @@
 // Rule Definition
 //------------------------------------------------------------------------------
 
+/** @type {import('../shared/types').Rule} */
 module.exports = {
     meta: {
         type: "problem",
 
         docs: {
-            description: "enforce \"for\" loop update clause moving the counter in the right direction.",
-            category: "Possible Errors",
+            description: "Enforce \"for\" loop update clause moving the counter in the right direction",
             recommended: true,
-            url: "https://eslint.org/docs/rules/for-direction"
+            url: "https://eslint.org/docs/latest/rules/for-direction"
         },
 
         fixable: null,
