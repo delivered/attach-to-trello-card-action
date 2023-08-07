@@ -82,18 +82,21 @@ const addPrComment = async (body) => {
 
 // to stop looking when we get to what looks like pr description, use stopOnNonLink true.  to allow interspersed lines of
 // yada yada yada b/w Trello links, use false.
-const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
+const extractTrelloCardIds = (prBody) =>   {
   core.debug(`prBody: ${util.inspect(prBody)}`);
+
+  if(!prBody || prBody === '') {
+    return cardIds;
+  }
   
   // browsers submit textareas with \r\n line breaks on all platforms
   const browserEol = '\r\n';
-  // requires that link be alone own line, and allows leading/trailing whitespace
-  const linkRegex = /^\s*(https\:\/\/trello\.com\/c\/(\w+)(\/\S*)?)?\s*$/;
+  const linkRegex = /(https\:\/\/trello\.com\/c\/(\w+)(\/\S*)?)/;
   
   const cardIds = [];
   const lines = prBody.split(browserEol);
 
-  //loop and gather up cardIds, skipping blank lines. stopOnNonLink == true will bust out when we're out of link-only territory.
+  //loop and gather up cardIds
   for(const line of lines) {
     const matches = linkRegex.exec(line);
     if(matches) {
@@ -101,9 +104,6 @@ const extractTrelloCardIds = (prBody, stopOnNonLink = true) =>   {
         core.debug(`found id ${matches[2]}`);
         cardIds.push(matches[2]);
       }
-    } else if(stopOnNonLink) {
-      core.debug('matched something non-blank/link.  stopping search');
-      break;
     }
   };
   return cardIds;
