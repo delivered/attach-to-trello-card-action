@@ -60,7 +60,7 @@ const getCardInfoSubset = async (cardId) => {
 };
 
 
-const octokit = new github.GitHub(ghToken);
+const octokit = new github.getOctokit(ghToken);
 
 const baseIssuesArgs = {
     owner: (evthookPayload.organization || evthookPayload.repository.owner).login,
@@ -69,11 +69,11 @@ const baseIssuesArgs = {
 };
 
 const getPrComments = async () => {
-  return octokit.issues.listComments(baseIssuesArgs);
+  return octokit.rest.issues.listComments(baseIssuesArgs);
 };
 
 const addPrComment = async (body) => {
-  return octokit.issues.createComment({
+  return octokit.rest.issues.createComment({
       ...baseIssuesArgs,
       body
   });
