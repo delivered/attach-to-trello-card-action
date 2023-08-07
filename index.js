@@ -59,8 +59,9 @@ const getCardInfoSubset = async (cardId) => {
   return requestTrello('get', `/1/cards/${cardId}`, null, {fields: 'name,url'});
 };
 
-
-const octokit = new github.getOctokit(ghToken);
+if (ghToken) {
+  const octokit = new github.getOctokit(ghToken);
+}
 
 const baseIssuesArgs = {
     owner: (evthookPayload.organization || evthookPayload.repository.owner).login,
@@ -69,10 +70,16 @@ const baseIssuesArgs = {
 };
 
 const getPrComments = async () => {
+  if(!octokit) {
+    throw new Error('Could not get PR comments. Is the GH repo-token provided?');
+  }
   return octokit.rest.issues.listComments(baseIssuesArgs);
 };
 
 const addPrComment = async (body) => {
+  if(!octokit) {
+    throw new Error('Could not get PR comments. Is the GH repo-token provided?');
+  }
   return octokit.rest.issues.createComment({
       ...baseIssuesArgs,
       body

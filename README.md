@@ -13,6 +13,8 @@ Jetabroad forked this for the following reasons:
 - Major update of dependencies
 - We wanted different, incompatible "link-finding" logic from the original project:
     - This fork will find all trello links in the PR body, regardless of position.
+- Misc bugfixes (handle empty Pull Request bodies, make repo-token truly optional).
+    - Some of these issues have PR fixes submitted upstream, but the PRs are languishing.
 
 ## Link-Finding
 Both the short-form (from the "Link to this card" field provided by a card's "Share" button) or long-form (cmd/ctrl+c with card open, copy from url bar with card open, etc.) are supported.
