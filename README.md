@@ -6,8 +6,16 @@ The action looks for Trello card URLs at the start of a Pull Request description
 
 Optionally, this can be configured to also attach (redundant) PR comments with card links/names, similar to what the Trello Power-up will do, for use cases requiring that.
 
+## Changes in this fork
+
+Jetabroad forked this for the following reasons:
+
+- Major update of dependencies
+- We wanted different, incompatible "link-finding" logic from the original project:
+    - This fork will find all trello links in the PR body, regardless of position.
+
 ## Link-Finding
-URLs need to each be on own line (leading/trailing whitespace and extra blank lines don't matter), and be at top of PR body.  URLs embedded in other text are ignored, as are URLs after descriptive (i.e., non-link) text starts.  Both the short-form (from the "Link to this card" field provided by a card's "Share" button) or long-form (cmd/ctrl+c with card open, copy from url bar with card open, etc.) are supported.
+Both the short-form (from the "Link to this card" field provided by a card's "Share" button) or long-form (cmd/ctrl+c with card open, copy from url bar with card open, etc.) are supported.
 
 So, for :
 ```text
@@ -18,8 +26,8 @@ This PR impl's the above 2 features.  These work similarly to feature https://tr
 The below is a random trello url put in this body, for some reason:
 https://trello.com/c/dddddddd
 ```
-only cards `aaaaaaaa` and `bbbbbbbbb` will have the PR attached.
 
+The cards `aaaaaaaa`, `bbbbbbbbb`, `ccccccccc`, and `dddddddd` will have the PR attached.
 
 ## Events
 
@@ -49,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Find trello link and attach to card
     steps:
-      - uses: delivered/attach-to-trello-card-action@master
+      - uses: jetabroad/attach-to-trello-card-action@master  # consider pinning this to a known release.
         with:
           trello-key: ${{ secrets.TRELLO_KEY }}
           trello-token: ${{ secrets.TRELLO_TOKEN }}
