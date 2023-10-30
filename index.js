@@ -4,7 +4,7 @@ const github = require('@actions/github');
 const axios = require('axios');
 
 const supportedEvent = 'pull_request';
-const supportedActions = ['opened', 'reopened', 'edited','labeled'];
+const supportedActions = ['opened', 'reopened', 'edited', 'labeled'];
 
 //configured in workflow file, which in turn should use repo secrets settings
 const trelloKey = core.getInput('trello-key', { required: true });
@@ -59,10 +59,13 @@ const getCardInfoSubset = async (cardId) => {
   return requestTrello('get', `/1/cards/${cardId}`, null, { fields: 'name,url' });
 };
 
-// const addLabel = async (cardId,labelId) => {
-//   return requestTrello('get', `/1/cards/${cardId}`, null, { value: labelId });
-// };
+const addTrelloCardLabel = async (cardId,labelId) => {
+  return requestTrello('put', `/1/labels/${cardId}`, null, { value: labelId });
+};
 
+const getTrelloCardLabel = async (cardId) => {
+  return requestTrello('get', `/1/labels/${cardId}`);
+};
 if (ghToken) {
   const octokit = new github.getOctokit(ghToken);
 }
@@ -139,25 +142,27 @@ const buildTrelloLinkComment = async (cardId) => {
 (async () => {
   try {
 
-    core.info("hello this is new code from den");
-    core.info("trelloKey:"+trelloKey);
-    core.info("trelloToken:"+trelloToken);
+    core.info("hello this is new code from den version 123");
+
+    const labelObjects = evthookPayload.pull_request.labels
+    const labels = labelObjects.map(function (object) {
+      return object['name'];
+    });
+    core.info("Pull reqeust's labels:"+ JSON.stringify(labels));
+
+
 
     if (!(github.context.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
       core.info(`event/type not supported: ${github.context.eventName.eventName}.${evthookPayload.action}.  skipping action.`);
       return;
     }
 
+
    
 
-    const labels = evthookPayload.pull_request.labels
-    core.info("printing labels ...");
+    const hasReadyLabel = labels.some(label => label == "ready for review");
 
-    core.info(JSON.stringify(evthookPayload.pull_request.labels));
-
-    const hasReadyLabel =  labels.some(it => it.name == "ready for review");
-
-    if(!hasReadyLabel){
+    if (!hasReadyLabel) {
 
       core.info("This pull request doesn't have [ready for review] label.")
       return;
@@ -168,14 +173,17 @@ const buildTrelloLinkComment = async (cardId) => {
     const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
 
 
- 
 
-    if (cardIds && cardIds.length > 0 && hasReadyLabel) { // check if label is ready for review as well
+
+    if (cardIds && cardIds.length > 0 ) { // check if label is ready for review as well
 
       for (const cardId of cardIds) {
         let extantAttachments;
+        const trelloLables = getTrelloCardLabel(cardId);
 
         core.info(`card url for ${cardId} specified in pr.`);
+        core.info("card's label"+trelloLables);
+
         extantAttachments = await getCardAttachments(cardId);
 
         //make sure not already attached
@@ -200,7 +208,7 @@ const buildTrelloLinkComment = async (cardId) => {
         }
       };
     } else {
-      
+
       throw new Error("no card urls in pr comment,please attach your card to this pull request.")
       //core.info(`no card urls in pr comment. nothing to do.`);
     }
