@@ -45,7 +45,7 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
     if(Array.isArray(res.data) && res.data.every( item => typeof(item) === 'string')){
       core.info("resopnse4=====> "+typeof(res.data));
       res.data =  res.data.map((str, index) => ({ value: str}));
-      core.info("resopnse3=====> "+JSON.stringify(res.data));
+      core.info("resopnse5=====> "+JSON.stringify(res.data));
     }
 
     return res.data;
@@ -193,7 +193,7 @@ const buildTrelloLinkComment = async (cardId) => {
         core.info('trelloextantAttachmentslabels typeof=>'+ typeof(extantAttachments));
 
         core.info(`card url for ${cardId} specified in pr.`);
-        let trellolabels = getTrelloCardLabels(cardId);
+        let trellolabels = await getTrelloCardLabels(cardId);
         core.info('trellolabels'+ JSON.stringify(trellolabels));
         core.info('trellolabels typeof=>'+ typeof(trellolabels));
         core.info('trellolabels Array.IsArray=>'+ Array.isArray(trellolabels));
