@@ -197,7 +197,7 @@ const syncUpAttachment = async (cardId) => {
 (async () => {
   try {
 
-    core.info("hello this is new code from den version 1234.105");
+ 
 
     // 1. Check Github action event
     if (!(github.context.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
