@@ -238,7 +238,6 @@ const syncUpAttachment = async (cardId) => {
     if (pullrequestHasReviewLabel) {
       var verificationTexReg = /verification.*step/;
       var cardObject = await getCard(cardId);
-      core.info("cardObject.desc.toLowerCase() = "+cardObject.desc.toLowerCase());
       var matches = verificationTexReg.exec(cardObject.desc.toLowerCase());
       if (!matches) {
         throw Error("there is no verification steps on card yet , please just put \"Verification Steps\" as text or remove [ready for review] label to skip this error")
