@@ -39,6 +39,7 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
     //BRH NOTE core.xxx logging methods explode with typeerror when given non-string object.  TODO wrap.
     core.debug(util.inspect(res.data));
     core.info("resopnse=====> "+util.inspect(res.data));
+    core.info("resopnse=====> "+typeof(res.data));
     return res.data;
   } catch (err) {
     core.error(`${verb} to ${url} errored: ${err}`);
