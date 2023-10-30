@@ -144,7 +144,8 @@ const buildTrelloLinkComment = async (cardId) => {
 
     const labels = evthookPayload.pull_request.labels
     core.info("printing labels ...");
-    core.info(evthookPayload.pull_request.labels);
+    
+    core.info(JSON.stringify(evthookPayload.pull_request.labels));
 
     const hasReadyLabel =  labels.some(it => it == "ready for review");
 
