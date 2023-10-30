@@ -74,7 +74,7 @@ const addTrelloCardLabel = async (cardId, labelId) => {
 
 
 const removeTrelloCardLabel = async (cardId, labelId) => {
-  return requestTrello('del', `/1/cards/${cardId}/idLabels/${labelId}`);
+  return requestTrello('delete', `/1/cards/${cardId}/idLabels/${labelId}`);
 };
 
 if (ghToken) {
