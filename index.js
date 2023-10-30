@@ -149,7 +149,7 @@ const buildTrelloLinkComment = async (cardId) => {
 (async () => {
   try {
 
-    core.info("hello this is new code from den version 1234");
+    core.info("hello this is new code from den version 1234.100");
 
     const labelObjects = evthookPayload.pull_request.labels
     const labels = labelObjects.map(function (object) {
