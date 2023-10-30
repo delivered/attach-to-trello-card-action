@@ -164,7 +164,7 @@ const buildTrelloLinkComment = async (cardId) => {
 
     const hasReadyLabel = labels.some(label => label == "ready for review");
 
-    if (hasReadyLabel) {
+    if (!hasReadyLabel) {
 
       core.info("This pull request doesn't have [ready for review] label.")
 
@@ -184,7 +184,7 @@ const buildTrelloLinkComment = async (cardId) => {
         let extantAttachments;
 
         core.info(`card url for ${cardId} specified in pr.`);
-        
+
         if(hasReadyLabel){
           
           var trellolabels = addTrelloCardLabel(cardId,'64fa916ea60ef5c4ba86301a');
