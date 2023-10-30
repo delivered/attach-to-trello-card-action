@@ -236,7 +236,7 @@ const syncUpAttachment = async (cardId) => {
 
     // 5. if pull request has [ready for review] label , continue to check if card has verification step provided
     if (pullrequestHasReviewLabel) {
-      var verificationTexReg = /verfication\.*step/;
+      var verificationTexReg = /verification\.*step/;
       var cardObject = await getCard(cardId);
       var matches = verificationTexReg.exec(cardObject.desc.toLowerCase());
       if (!matches) {
