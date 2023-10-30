@@ -4,7 +4,7 @@ const github = require('@actions/github');
 const axios = require('axios');
 
 const supportedEvent = 'pull_request';
-const supportedActions = ['opened', 'reopened', 'edited'];
+const supportedActions = ['opened', 'reopened', 'edited','labeled'];
 
 //configured in workflow file, which in turn should use repo secrets settings
 const trelloKey = core.getInput('trello-key', { required: true });
@@ -132,9 +132,8 @@ const buildTrelloLinkComment = async (cardId) => {
 // Run everytime new commit is pushed 
 (async () => {
   try {
-    
+
     core.info("hello this is new code from den");
-    core.info("event:"+github.context.eventName );
 
     if (!(github.context.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
       core.info(`event/type not supported: ${github.context.eventName.eventName}.${evthookPayload.action}.  skipping action.`);
@@ -144,6 +143,9 @@ const buildTrelloLinkComment = async (cardId) => {
    
 
     const labels = evthookPayload.pull_request.labels
+    core.info("printing labels ...");
+    core.info(evthookPayload.pull_request.labels);
+
     const hasReadyLabel =  labels.some(it => it == "ready for review");
 
     if(!hasReadyLabel){
