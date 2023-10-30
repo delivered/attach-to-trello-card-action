@@ -60,12 +60,14 @@ const getCardInfoSubset = async (cardId) => {
 };
 
 const addTrelloCardLabel = async (cardId,labelId) => {
-  return requestTrello('put', `/1/labels/${cardId}`, null, { value: labelId });
+  return requestTrello('post', `/1/cards/${cardId}/idLabels`, null, { value: labelId });
 };
 
-const getTrelloCardLabel = async (cardId) => {
-  return requestTrello('get', `/1/labels/${cardId}`);
+
+const removeTrelloCardLabel = async (cardId,labelId) => {
+  return requestTrello('del', `/1/cards/${cardId}/idLabels`, null, { value: labelId });
 };
+
 if (ghToken) {
   const octokit = new github.getOctokit(ghToken);
 }
@@ -162,9 +164,10 @@ const buildTrelloLinkComment = async (cardId) => {
 
     const hasReadyLabel = labels.some(label => label == "ready for review");
 
-    if (!hasReadyLabel) {
+    if (hasReadyLabel) {
 
       core.info("This pull request doesn't have [ready for review] label.")
+
       return;
 
     }
@@ -179,10 +182,22 @@ const buildTrelloLinkComment = async (cardId) => {
 
       for (const cardId of cardIds) {
         let extantAttachments;
-        const trelloLables = getTrelloCardLabel(cardId);
 
         core.info(`card url for ${cardId} specified in pr.`);
-        core.info("card's label"+trelloLables);
+        
+        if(hasReadyLabel){
+          
+          var trellolabels = addTrelloCardLabel(cardId,'64fa916ea60ef5c4ba86301a');
+          core.info(`add label [Ready for Team Review] to trell card`);
+
+        }else{
+
+          var trellolabels = removeTrelloCardLabel(cardId,'64fa916ea60ef5c4ba86301a');
+          core.info(`remove label [Ready for Team Review] to trell card`);
+
+        }
+      
+      
 
         extantAttachments = await getCardAttachments(cardId);
 
