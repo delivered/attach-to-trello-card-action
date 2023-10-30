@@ -38,7 +38,6 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
     core.debug(`${verb} to ${url} completed with status: ${res.status}.  data follows:`);
     //BRH NOTE core.xxx logging methods explode with typeerror when given non-string object.  TODO wrap.
     core.debug(util.inspect(res.data));
-    core.info(util.inspect(res.data));
     return res.data;
   } catch (err) {
     core.error(`${verb} to ${url} errored: ${err}`);
@@ -181,7 +180,7 @@ const buildTrelloLinkComment = async (cardId) => {
         let extantAttachments;
 
         core.info(`card url for ${cardId} specified in pr.`);
-        var trellolabels = getTrelloCardLabels(cardId);
+        let trellolabels = getTrelloCardLabels(cardId);
         core.info('trellolabels'+ JSON.stringify(trellolabels));
         var cardHasReviewLabel  = trellolabels.some( lb => lb == trelloReviewLabelId);
 
