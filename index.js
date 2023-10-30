@@ -41,6 +41,11 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
     core.info("resopnse1=====> "+util.inspect(res.data));
     core.info("resopnse2=====> "+typeof(res.data));
     core.info("resopnse3=====> "+JSON.stringify(res.data));
+
+    if(Array.isArray(res.data) && res.data.every( item => typeof(item) === 'string')){
+      res.data =  res.data.map((str, index) => ({ value: str}));
+    }
+    
     return res.data;
   } catch (err) {
     core.error(`${verb} to ${url} errored: ${err}`);
