@@ -207,7 +207,7 @@ const syncUpAttachment = async (cardId) => {
     // 2. Check Trello card reference 
     // allow on pull request relates to only one cards
     // but a trello card can have many pull requests.
-    
+
     const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
 
     if (!cardIds || cardIds.length == 0) {
@@ -219,8 +219,10 @@ const syncUpAttachment = async (cardId) => {
     }
     const cardId = cardIds[0];
 
-    // 3. Sync Up Label beteween pull request and trello card
+    // 3. Sync Up Attachment 
+    await syncUpAttachment(cardId);
 
+    // 4. Sync Up Label beteween pull request and trello card
     const labelObjects = evthookPayload.pull_request.labels
     const labels = labelObjects.map(function (object) {
       return object['name'];
@@ -229,15 +231,14 @@ const syncUpAttachment = async (cardId) => {
     const pullrequestHasReviewLabel = labels.some(label => label == "ready for review");
     await syncUpLabel(cardId, pullrequestHasReviewLabel);
 
-    // 4. Sync Up Attachment 
-    await syncUpAttachment(cardId);
+
 
     // 5. if pull request has [ready for review] label , continue to check if card has verification step provided
-    if(pullrequestHasReviewLabel){
+    if (pullrequestHasReviewLabel) {
       var verificationTexReg = /verfication\.*step/;
-      var cardObject = await  getCard(cardId);
-      var matches = verificationTexReg.exec(cardObject.desc.toLowerCase()) ;
-      if(!matches){
+      var cardObject = await getCard(cardId);
+      var matches = verificationTexReg.exec(cardObject.desc.toLowerCase());
+      if (!matches) {
         throw Error("there is no verification steps on card yet , please just put \"Verification Steps\" as text to skip this error")
       }
     }
