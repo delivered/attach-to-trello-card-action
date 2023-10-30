@@ -196,6 +196,7 @@ const buildTrelloLinkComment = async (cardId) => {
         let trellolabels = getTrelloCardLabels(cardId);
         core.info('trellolabels'+ JSON.stringify(trellolabels));
         core.info('trellolabels typeof=>'+ typeof(trellolabels));
+        core.info('trellolabels Array.IsArray=>'+ Array.isArray(trellolabels));
         core.info('trellolabels 222'+ JSON.stringify(['xxxx','yyyyy']));
         var cardHasReviewLabel  = trellolabels.some( lb => lb == trelloReviewLabelId);
 
