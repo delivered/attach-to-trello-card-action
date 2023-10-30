@@ -5,6 +5,7 @@ const axios = require('axios');
 
 const supportedEvent = 'pull_request';
 const supportedActions = ['opened', 'reopened', 'edited', 'labeled','unlabeled'];
+const trelloReviewLabelId = '64fa916ea60ef5c4ba86301a'
 
 //configured in workflow file, which in turn should use repo secrets settings
 const trelloKey = core.getInput('trello-key', { required: true });
@@ -57,6 +58,10 @@ const createCardAttachment = async (cardId, attachUrl) => {
 
 const getCardInfoSubset = async (cardId) => {
   return requestTrello('get', `/1/cards/${cardId}`, null, { fields: 'name,url' });
+};
+
+const getTrelloCardLabels = async (cardId) => {
+  return requestTrello('post', `/1/cards/${cardId}/idLabels`);
 };
 
 const addTrelloCardLabel = async (cardId,labelId) => {
@@ -162,7 +167,7 @@ const buildTrelloLinkComment = async (cardId) => {
 
    
 
-    const hasReadyLabel = labels.some(label => label == "ready for review");
+    const pullrequestHasReviewLabel = labels.some(label => label == "ready for review");
     const prUrl = evthookPayload.pull_request.html_url;
     const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
 
@@ -175,16 +180,20 @@ const buildTrelloLinkComment = async (cardId) => {
         let extantAttachments;
 
         core.info(`card url for ${cardId} specified in pr.`);
+        var trellolabels = getTrelloCardLabels(cardId);
+        var cardHasReviewLabel  = trellolabels.some( lb => lb == trelloReviewLabelId);
 
-        if(hasReadyLabel){
-          
-          var trellolabels = addTrelloCardLabel(cardId,'64fa916ea60ef5c4ba86301a');
-          core.info(`add label [Ready for Team Review] to trell card`);
+        if(pullrequestHasReviewLabel && !cardHasReviewLabel){
+        
+          var trellolabels = addTrelloCardLabel(cardId,trelloReviewLabelId);
+          core.info(`add label [Ready for Team Review] to trello card`);
 
-        }else{
+        }
 
-          var trellolabels = removeTrelloCardLabel(cardId,'64fa916ea60ef5c4ba86301a');
-          core.info(`remove label [Ready for Team Review] to trell card`);
+        if(!pullrequestHasReviewLabel && cardHasReviewLabel)
+
+          var trellolabels = removeTrelloCardLabel(cardId,trelloReviewLabelId);
+          core.info(`remove label [Ready for Team Review] from trello card`);
 
         }
       
