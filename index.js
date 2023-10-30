@@ -132,7 +132,10 @@ const buildTrelloLinkComment = async (cardId) => {
 // Run everytime new commit is pushed 
 (async () => {
   try {
+    
     core.info("hello this is new code from den");
+    core.info("event:"+github.context.eventName );
+
     if (!(github.context.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
       core.info(`event/type not supported: ${github.context.eventName.eventName}.${evthookPayload.action}.  skipping action.`);
       return;
