@@ -149,7 +149,7 @@ const buildTrelloLinkComment = async (cardId) => {
 (async () => {
   try {
 
-    core.info("hello this is new code from den version 1234.102");
+    core.info("hello this is new code from den version 1234.103");
 
     const labelObjects = evthookPayload.pull_request.labels
     const labels = labelObjects.map(function (object) {
@@ -182,6 +182,7 @@ const buildTrelloLinkComment = async (cardId) => {
         core.info(`card url for ${cardId} specified in pr.`);
         let trellolabels = getTrelloCardLabels(cardId);
         core.info('trellolabels'+ JSON.stringify(trellolabels));
+        core.info('trellolabels typeof=>'+ typeof(trellolabels));
         core.info('trellolabels 222'+ JSON.stringify(['xxxx','yyyyy']));
         var cardHasReviewLabel  = trellolabels.some( lb => lb == trelloReviewLabelId);
 
