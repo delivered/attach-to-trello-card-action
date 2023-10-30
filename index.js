@@ -4,7 +4,7 @@ const github = require('@actions/github');
 const axios = require('axios');
 
 const supportedEvent = 'pull_request';
-const supportedActions = ['opened', 'reopened', 'edited', 'labeled','unlabeled'];
+const supportedActions = ['opened', 'reopened', 'edited', 'labeled', 'unlabeled'];
 const trelloReviewLabelId = '64fa916ea60ef5c4ba86301a'
 
 //configured in workflow file, which in turn should use repo secrets settings
@@ -38,16 +38,6 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
     core.debug(`${verb} to ${url} completed with status: ${res.status}.  data follows:`);
     //BRH NOTE core.xxx logging methods explode with typeerror when given non-string object.  TODO wrap.
     core.debug(util.inspect(res.data));
-    // core.info("resopnse1=====> "+util.inspect(res.data));
-    // core.info("resopnse2=====> "+typeof(res.data));
-    // core.info("resopnse3=====> "+JSON.stringify(res.data));
-
-    // if(Array.isArray(res.data) && res.data.every( item => typeof(item) === 'string')){
-    //   core.info("resopnse4=====> "+typeof(res.data));
-    //   res.data =  res.data.map((str, index) => ({ value: str}));
-    //   core.info("resopnse5=====> "+JSON.stringify(res.data));
-    // }
-
     return res.data;
   } catch (err) {
     core.error(`${verb} to ${url} errored: ${err}`);
@@ -57,6 +47,10 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
     throw err;
   }
 };
+const getCard = async (cardId) => {
+  return requestTrello('get', `/1/cards/${cardId}`);
+};
+
 
 const getCardAttachments = async (cardId) => {
   return requestTrello('get', `/1/cards/${cardId}/attachments`);
@@ -74,12 +68,12 @@ const getTrelloCardLabels = async (cardId) => {
   return requestTrello('get', `/1/cards/${cardId}/idLabels`);
 };
 
-const addTrelloCardLabel = async (cardId,labelId) => {
+const addTrelloCardLabel = async (cardId, labelId) => {
   return requestTrello('post', `/1/cards/${cardId}/idLabels`, null, { value: labelId });
 };
 
 
-const removeTrelloCardLabel = async (cardId,labelId) => {
+const removeTrelloCardLabel = async (cardId, labelId) => {
   return requestTrello('del', `/1/cards/${cardId}/idLabels/${labelId}`);
 };
 
@@ -152,8 +146,51 @@ const commentsContainsTrelloLink = async (cardId) => {
 const buildTrelloLinkComment = async (cardId) => {
   const cardInfo = await getCardInfoSubset(cardId);
   return `![](https://github.trello.services/images/mini-trello-icon.png) [${cardInfo.name}](${cardInfo.url})`;
-}
+};
 
+const syncUpLabel = async (cardId, pullrequestHasReviewLabel) => {
+
+  let trellolabels = await getTrelloCardLabels(cardId);
+  var cardHasReviewLabel = trellolabels.some(lb => lb == trelloReviewLabelId);
+
+  if (pullrequestHasReviewLabel && !cardHasReviewLabel) {
+
+    await addTrelloCardLabel(cardId, trelloReviewLabelId);
+    core.info(`add label [Ready for Team Review] to trello card`);
+  }
+
+  if (!pullrequestHasReviewLabel && cardHasReviewLabel) {
+    await removeTrelloCardLabel(cardId, trelloReviewLabelId);
+    core.info(`remove label [Ready for Team Review] from trello card`);
+  }
+
+
+};
+
+const syncUpAttachment = async (cardId) => {
+  let extantAttachments;
+  extantAttachments = await getCardAttachments(cardId);
+  //make sure not already attached
+  if (extantAttachments == null || !extantAttachments.some(it => it.url === evthookPayload.pull_request.html_url)) {
+    const createdAttachment = await createCardAttachment(cardId, evthookPayload.pull_request.html_url);
+    core.info(`created trello attachment for card ${cardId}.`);
+    core.debug(util.inspect(createdAttachment));
+
+    // BRH NOTE actually, the power-up doesn't check if it previously added comment, so this doesn't exactly match
+    //  its fxnality.
+    if (shouldAddPrComment && !await commentsContainsTrelloLink(cardId)) {
+      core.debug(`adding pr comment for card ${cardId}.`);
+      const newComment = await buildTrelloLinkComment(cardId)
+
+      //comments as 'github actions' bot, at least when using token automatically generated for GH workflows
+      await addPrComment(newComment);
+    } else {
+      core.info(`pr comment already present or unwanted for card ${cardId} - skipped comment add.`);
+    }
+  } else {
+    core.info(`trello attachment for card ${cardId} already exists - skipped attachment create.`);
+  }
+}
 
 // Run everytime new commit is pushed 
 (async () => {
@@ -161,80 +198,50 @@ const buildTrelloLinkComment = async (cardId) => {
 
     core.info("hello this is new code from den version 1234.105");
 
-    const labelObjects = evthookPayload.pull_request.labels
-    const labels = labelObjects.map(function (object) {
-      return object['name'];
-    });
-    core.info("Pull reqeust's labels:"+ JSON.stringify(labels));
-
-
-
+    // 1. Check Github action event
     if (!(github.context.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
       core.info(`event/type not supported: ${github.context.eventName.eventName}.${evthookPayload.action}.  skipping action.`);
       return;
     }
 
-
-   
-
-    const pullrequestHasReviewLabel = labels.some(label => label == "ready for review");
-    const prUrl = evthookPayload.pull_request.html_url;
+    // 2. Check Trello card reference 
+    // allow on pull request relates to only one cards
+    // but a trello card can have many pull requests.
+    
     const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
 
-
-
-
-    if (cardIds && cardIds.length > 0 ) { // check if label is ready for review as well
-
-      for (const cardId of cardIds) {
-  
-
-        let trellolabels = await getTrelloCardLabels(cardId);
-        var cardHasReviewLabel  = trellolabels.some( lb => lb == trelloReviewLabelId);
-
-        if(pullrequestHasReviewLabel && !cardHasReviewLabel){
-
-          var result = await addTrelloCardLabel(cardId,trelloReviewLabelId);
-          core.info(`add label [Ready for Team Review] to trello card`);
-        }
-
-        if(!pullrequestHasReviewLabel && cardHasReviewLabel){
-          var result = await removeTrelloCardLabel(cardId,trelloReviewLabelId);
-          core.info(`remove label [Ready for Team Review] from trello card`);
-        }
-      
-        let extantAttachments;
-        extantAttachments = await getCardAttachments(cardId);
-      
-
-
-
-        //make sure not already attached
-        if (extantAttachments == null || !extantAttachments.some(it => it.url === prUrl)) {
-          const createdAttachment = await createCardAttachment(cardId, prUrl);
-          core.info(`created trello attachment for card ${cardId}.`);
-          core.debug(util.inspect(createdAttachment));
-
-          // BRH NOTE actually, the power-up doesn't check if it previously added comment, so this doesn't exactly match
-          //  its fxnality.
-          if (shouldAddPrComment && !await commentsContainsTrelloLink(cardId)) {
-            core.debug(`adding pr comment for card ${cardId}.`);
-            const newComment = await buildTrelloLinkComment(cardId)
-
-            //comments as 'github actions' bot, at least when using token automatically generated for GH workflows
-            await addPrComment(newComment);
-          } else {
-            core.info(`pr comment already present or unwanted for card ${cardId} - skipped comment add.`);
-          }
-        } else {
-          core.info(`trello attachment for card ${cardId} already exists - skipped attachment create.`);
-        }
-      };
-    } else {
-
+    if (!cardIds || cardIds.length == 0) {
       throw new Error("no card urls in pr comment,please attach your card to this pull request.")
-      //core.info(`no card urls in pr comment. nothing to do.`);
     }
+
+    if (cardIds.length != 1) {
+      throw new Error("can not have mulitple trello cards on one pull request.");
+    }
+    const cardId = cardIds[0];
+
+    // 3. Sync Up Label beteween pull request and trello card
+
+    const labelObjects = evthookPayload.pull_request.labels
+    const labels = labelObjects.map(function (object) {
+      return object['name'];
+    });
+    core.info("Pull reqeust's labels:" + JSON.stringify(labels));
+    const pullrequestHasReviewLabel = labels.some(label => label == "ready for review");
+    await syncUpLabel(cardId, pullrequestHasReviewLabel);
+
+    // 4. Sync Up Attachment 
+    await syncUpAttachment(cardId);
+
+    // 5. if pull request has [ready for review] label , continue to check if card has verification step provided
+    if(pullrequestHasReviewLabel){
+      var verificationTexReg = /verfication\.*step/;
+      var cardObject = await  getCard(cardId);
+      var matches = verificationTexReg.exec(cardObject.desc.toLowerCase()) ;
+      if(!matches){
+        throw Error("there is no verification steps on card yet , please just put \"Verification Steps\" as text to skip this error")
+      }
+    }
+
   } catch (error) {
     core.error(util.inspect(error));
     //failure will stop PR from being mergeable if that setting enabled on the repo.  there is not currently a neutral exit in actions v2.
