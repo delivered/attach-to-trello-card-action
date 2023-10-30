@@ -152,7 +152,7 @@ const buildTrelloLinkComment = async (cardId) => {
 (async () => {
   try {
 
-    core.info("hello this is new code from den version 1234.104");
+    core.info("hello this is new code from den version 1234.105");
 
     const labelObjects = evthookPayload.pull_request.labels
     const labels = labelObjects.map(function (object) {
@@ -181,6 +181,9 @@ const buildTrelloLinkComment = async (cardId) => {
 
       for (const cardId of cardIds) {
         let extantAttachments;
+        extantAttachments = await getCardAttachments(cardId);
+        core.info('extantAttachments'+ JSON.stringify(extantAttachments));
+        core.info('trelloextantAttachmentslabels typeof=>'+ typeof(extantAttachments));
 
         core.info(`card url for ${cardId} specified in pr.`);
         let trellolabels = getTrelloCardLabels(cardId);
@@ -205,7 +208,7 @@ const buildTrelloLinkComment = async (cardId) => {
       
       
 
-        extantAttachments = await getCardAttachments(cardId);
+
 
         //make sure not already attached
         if (extantAttachments == null || !extantAttachments.some(it => it.url === prUrl)) {
