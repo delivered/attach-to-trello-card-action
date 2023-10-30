@@ -149,7 +149,7 @@ const buildTrelloLinkComment = async (cardId) => {
 (async () => {
   try {
 
-    core.info("hello this is new code from den version 1234.101");
+    core.info("hello this is new code from den version 1234.102");
 
     const labelObjects = evthookPayload.pull_request.labels
     const labels = labelObjects.map(function (object) {
@@ -186,14 +186,14 @@ const buildTrelloLinkComment = async (cardId) => {
 
         if(pullrequestHasReviewLabel && !cardHasReviewLabel){
         
-          var trellolabels = addTrelloCardLabel(cardId,trelloReviewLabelId);
+          var result = addTrelloCardLabel(cardId,trelloReviewLabelId);
           core.info(`add label [Ready for Team Review] to trello card`);
 
         }
 
         if(!pullrequestHasReviewLabel && cardHasReviewLabel){
 
-          var trellolabels = removeTrelloCardLabel(cardId,trelloReviewLabelId);
+          var result = removeTrelloCardLabel(cardId,trelloReviewLabelId);
           core.info(`remove label [Ready for Team Review] from trello card`);
 
         }
