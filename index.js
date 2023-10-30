@@ -4,7 +4,7 @@ const github = require('@actions/github');
 const axios = require('axios');
 
 const supportedEvent = 'pull_request';
-const supportedActions = ['opened', 'reopened', 'edited', 'labeled'];
+const supportedActions = ['opened', 'reopened', 'edited', 'labeled','unlabeled'];
 
 //configured in workflow file, which in turn should use repo secrets settings
 const trelloKey = core.getInput('trello-key', { required: true });
@@ -65,7 +65,7 @@ const addTrelloCardLabel = async (cardId,labelId) => {
 
 
 const removeTrelloCardLabel = async (cardId,labelId) => {
-  return requestTrello('del', `/1/cards/${cardId}/idLabels`, null, { value: labelId });
+  return requestTrello('del', `/1/cards/${cardId}/idLabels/${labelId}`);
 };
 
 if (ghToken) {
