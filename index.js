@@ -190,7 +190,7 @@ const buildTrelloLinkComment = async (cardId) => {
 
         }
 
-        if(!pullrequestHasReviewLabel && cardHasReviewLabel)
+        if(!pullrequestHasReviewLabel && cardHasReviewLabel){
 
           var trellolabels = removeTrelloCardLabel(cardId,trelloReviewLabelId);
           core.info(`remove label [Ready for Team Review] from trello card`);
