@@ -59,6 +59,10 @@ const getCardInfoSubset = async (cardId) => {
   return requestTrello('get', `/1/cards/${cardId}`, null, { fields: 'name,url' });
 };
 
+// const addLabel = async (cardId,labelId) => {
+//   return requestTrello('get', `/1/cards/${cardId}`, null, { value: labelId });
+// };
+
 if (ghToken) {
   const octokit = new github.getOctokit(ghToken);
 }
@@ -85,6 +89,8 @@ const addPrComment = async (body) => {
     body
   });
 };
+
+
 
 
 // to stop looking when we get to what looks like pr description, use stopOnNonLink true.  to allow interspersed lines of
@@ -134,6 +140,8 @@ const buildTrelloLinkComment = async (cardId) => {
   try {
 
     core.info("hello this is new code from den");
+    core.info("trelloKey:"+trelloKey);
+    core.info("trelloToken:"+trelloToken);
 
     if (!(github.context.eventName === supportedEvent && supportedActions.some(el => el === evthookPayload.action))) {
       core.info(`event/type not supported: ${github.context.eventName.eventName}.${evthookPayload.action}.  skipping action.`);
@@ -153,7 +161,7 @@ const buildTrelloLinkComment = async (cardId) => {
 
       core.info("This pull request doesn't have [ready for review] label.")
       return;
-      
+
     }
 
     const prUrl = evthookPayload.pull_request.html_url;
