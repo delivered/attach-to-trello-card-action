@@ -38,15 +38,15 @@ const requestTrello = async (verb, url, body = null, extraParams = null) => {
     core.debug(`${verb} to ${url} completed with status: ${res.status}.  data follows:`);
     //BRH NOTE core.xxx logging methods explode with typeerror when given non-string object.  TODO wrap.
     core.debug(util.inspect(res.data));
-    core.info("resopnse1=====> "+util.inspect(res.data));
-    core.info("resopnse2=====> "+typeof(res.data));
-    core.info("resopnse3=====> "+JSON.stringify(res.data));
+    // core.info("resopnse1=====> "+util.inspect(res.data));
+    // core.info("resopnse2=====> "+typeof(res.data));
+    // core.info("resopnse3=====> "+JSON.stringify(res.data));
 
-    if(Array.isArray(res.data) && res.data.every( item => typeof(item) === 'string')){
-      core.info("resopnse4=====> "+typeof(res.data));
-      res.data =  res.data.map((str, index) => ({ value: str}));
-      core.info("resopnse5=====> "+JSON.stringify(res.data));
-    }
+    // if(Array.isArray(res.data) && res.data.every( item => typeof(item) === 'string')){
+    //   core.info("resopnse4=====> "+typeof(res.data));
+    //   res.data =  res.data.map((str, index) => ({ value: str}));
+    //   core.info("resopnse5=====> "+JSON.stringify(res.data));
+    // }
 
     return res.data;
   } catch (err) {
@@ -187,33 +187,24 @@ const buildTrelloLinkComment = async (cardId) => {
     if (cardIds && cardIds.length > 0 ) { // check if label is ready for review as well
 
       for (const cardId of cardIds) {
-        let extantAttachments;
-        extantAttachments = await getCardAttachments(cardId);
-        core.info('extantAttachments'+ JSON.stringify(extantAttachments));
-        core.info('trelloextantAttachmentslabels typeof=>'+ typeof(extantAttachments));
+  
 
-        core.info(`card url for ${cardId} specified in pr.`);
         let trellolabels = await getTrelloCardLabels(cardId);
-        core.info('trellolabels'+ JSON.stringify(trellolabels));
-        core.info('trellolabels typeof=>'+ typeof(trellolabels));
-        core.info('trellolabels Array.IsArray=>'+ Array.isArray(trellolabels));
-        core.info('trellolabels 222'+ JSON.stringify(['xxxx','yyyyy']));
         var cardHasReviewLabel  = trellolabels.some( lb => lb == trelloReviewLabelId);
 
         if(pullrequestHasReviewLabel && !cardHasReviewLabel){
-        
-          var result = addTrelloCardLabel(cardId,trelloReviewLabelId);
-          core.info(`add label [Ready for Team Review] to trello card`);
 
+          var result = await addTrelloCardLabel(cardId,trelloReviewLabelId);
+          core.info(`add label [Ready for Team Review] to trello card`);
         }
 
         if(!pullrequestHasReviewLabel && cardHasReviewLabel){
-
-          var result = removeTrelloCardLabel(cardId,trelloReviewLabelId);
+          var result = await removeTrelloCardLabel(cardId,trelloReviewLabelId);
           core.info(`remove label [Ready for Team Review] from trello card`);
-
         }
       
+        let extantAttachments;
+        extantAttachments = await getCardAttachments(cardId);
       
 
 
