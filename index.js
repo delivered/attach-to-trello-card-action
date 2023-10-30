@@ -61,7 +61,7 @@ const getCardInfoSubset = async (cardId) => {
 };
 
 const getTrelloCardLabels = async (cardId) => {
-  return requestTrello('post', `/1/cards/${cardId}/idLabels`);
+  return requestTrello('get', `/1/cards/${cardId}/idLabels`);
 };
 
 const addTrelloCardLabel = async (cardId,labelId) => {
