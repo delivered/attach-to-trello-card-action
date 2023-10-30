@@ -144,7 +144,7 @@ const buildTrelloLinkComment = async (cardId) => {
 (async () => {
   try {
 
-    core.info("hello this is new code from den version 123");
+    core.info("hello this is new code from den version 1234");
 
     const labelObjects = evthookPayload.pull_request.labels
     const labels = labelObjects.map(function (object) {
@@ -163,15 +163,6 @@ const buildTrelloLinkComment = async (cardId) => {
    
 
     const hasReadyLabel = labels.some(label => label == "ready for review");
-
-    if (!hasReadyLabel) {
-
-      core.info("This pull request doesn't have [ready for review] label.")
-
-      return;
-
-    }
-
     const prUrl = evthookPayload.pull_request.html_url;
     const cardIds = extractTrelloCardIds(evthookPayload.pull_request.body);
 
