@@ -151,6 +151,7 @@ const buildTrelloLinkComment = async (cardId) => {
 const syncUpLabel = async (cardId, pullrequestHasReviewLabel) => {
 
   let trellolabels = await getTrelloCardLabels(cardId);
+  core.info("Trell card's labels ="+JSON.stringify(trellolabels));
   var cardHasReviewLabel = trellolabels.some(lb => lb == trelloReviewLabelId);
 
   if (pullrequestHasReviewLabel && !cardHasReviewLabel) {
