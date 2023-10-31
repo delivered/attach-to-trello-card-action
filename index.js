@@ -204,7 +204,7 @@ const syncUpAttachment = async (cardId) => {
       core.info(`event-check:event/type not supported: ${github.context.eventName.eventName}.${evthookPayload.action}.  skipping action.`);
       return;
     }
-    core.info("event-check:passed");
+    core.info(`event-check:action == ${evthookPayload.action}, passed`);
 
     // 2. Check Trello card reference 
     // allow on pull request relates to only one cards
@@ -220,7 +220,7 @@ const syncUpAttachment = async (cardId) => {
       throw new Error("trello-card-check:can not have mulitple trello cards on one pull request.");
     }
     const cardId = cardIds[0];
-    core.info("trello-card-check:passed");
+    core.info(`trello-card-check:cardId = ${cardId}, passed`);
 
     // 3. Sync Up Attachment 
     await syncUpAttachment(cardId);
